@@ -1,3 +1,4 @@
+//popup.js
 document.getElementById('injectBtn').addEventListener('click', () => {
   chrome.runtime.sendMessage({action: "injectPostScript"}, response => {
     if (response.success) {

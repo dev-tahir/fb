@@ -1,3 +1,4 @@
+//content_script.js
 console.log('FB Post Sender and Poster content script loaded');
 
 function injectPostButtons() {
