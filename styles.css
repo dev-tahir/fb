@@ -22,3 +22,187 @@
   position: relative;
   display: inline-block;
 }
+
+.repost-button {
+    padding: 5px 10px;
+    margin: 5px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: #ccc;
+    color: white;
+}
+
+.repost-button.active {
+    background-color: #4CAF50;
+}
+
+.repost-button:hover {
+    opacity: 0.8;
+}
+
+.repost-button:not(.active):hover {
+    background-color: #bbb;
+}
+
+/* Modal styles */
+#extension-modal {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    width: 300px;
+    max-height: 500px;
+    background: white;
+    padding: 15px;
+    z-index: 9999;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    overflow-y: auto;
+    transition: all 0.3s ease;
+}
+
+#extension-modal h3 {
+    margin: 0 0 15px 0;
+    color: #1a1a1a;
+    font-size: 16px;
+    font-weight: 600;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e4e4e4;
+    display: flex;
+    align-items: center;
+}
+
+#extension-modal h3::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background-color: #4CAF50;
+    border-radius: 50%;
+    margin-right: 8px;
+    animation: pulse 2s infinite;
+}
+
+#posts-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+#posts-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+#posts-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+#posts-list::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+#posts-list::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+#posts-list div {
+    padding: 10px;
+    margin: 5px 0;
+    background: #f8f9fa;
+    border-left: 3px solid #4CAF50;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #444;
+    transition: all 0.2s ease;
+}
+
+#posts-list div:hover {
+    background: #f0f2f5;
+    transform: translateX(2px);
+}
+
+/* Animation for the status indicator */
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+    }
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+    #extension-modal {
+        width: 250px;
+        max-height: 400px;
+    }
+}
+
+/* Animation for new posts */
+@keyframes slideIn {
+    from {
+        transform: translateX(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+#posts-list div {
+    animation: slideIn 0.3s ease forwards;
+}
+
+/* Status message styles */
+.status-message {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+    font-style: italic;
+}
+
+/* Error message styles */
+.error-message {
+    color: #dc3545;
+    background: #fff5f5;
+    padding: 8px;
+    border-radius: 4px;
+    margin: 5px 0;
+    font-size: 12px;
+}
+
+/* Success message styles */
+.success-message {
+    color: #28a745;
+    background: #f0fff4;
+    padding: 8px;
+    border-radius: 4px;
+    margin: 5px 0;
+    font-size: 12px;
+}
+
+/* Add to your existing styles.css */
+#extension-modal.posting-mode {
+    border-left: 4px solid #4CAF50;
+}
+
+#extension-modal.sharing-mode {
+    border-left: 4px solid #2196F3;
+}
+
+.status-message {
+    font-size: 12px;
+    color: #666;
+    margin-top: 10px;
+    padding: 5px;
+    background: #f5f5f5;
+    border-radius: 3px;
+}

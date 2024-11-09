@@ -3,7 +3,7 @@
   "name": "Facebook Post Capture & Publisher",
   "version": "1.0",
   "description": "Capture and post content to Facebook",
-  "permissions": ["activeTab", "https://*.facebook.com/*", "storage"],
+  "permissions": ["activeTab", "https://*.facebook.com/*", "storage", "tabs"],
   "background": {
     "scripts": ["background.js"],
     "persistent": false
@@ -16,7 +16,6 @@
     }
   ],
   "browser_action": {
-    "default_popup": "popup.html",
     "default_icon": {
       "48": "icon48.png"
     }
