@@ -1,16 +1,18 @@
-<!-- popup html -->
 <!DOCTYPE html>
 <html>
 <head>
-  <title>FB Post Sender and Poster</title>
+  <title>FB Post Receiver</title>
   <style>
     body { width: 300px; padding: 10px; }
     button { width: 100%; padding: 10px; margin-top: 10px; }
+    #postList { margin-top: 10px; }
+    .post-item { border: 1px solid #ccc; padding: 5px; margin-bottom: 5px; }
   </style>
 </head>
 <body>
-  <h1>FB Post Sender and Poster</h1>
-  <button id="injectBtn">Inject Post Script</button>
+  <h1>FB Post Receiver</h1>
+  <div id="postList"></div>
+  <button id="clearBtn">Clear All Posts</button>
   <script src="popup.js"></script>
 </body>
 </html>
