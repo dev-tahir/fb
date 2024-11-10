@@ -1,12 +1,27 @@
 console.log("FB Post Sender content script loaded");
 let isExtensionActive = false;
 let isPostingTab = false;
+let stateCheckInterval;
+
+// Add this function to verify posting tab status
+function verifyPostingTabStatus() {
+    chrome.runtime.sendMessage({action: "verifyPostingTab"}, function(response) {
+        if (response && response.isPostingTab !== isPostingTab) {
+            isPostingTab = response.isPostingTab;
+            isExtensionActive = response.isPostingTab;
+            updateModalStatus();
+            updateButtonStyles();
+        }
+    });
+}
+
 
 // Initialize modal function
 function initializeModal() {
   if (!document.getElementById("extension-modal")) {
     const modal = document.createElement("div");
     modal.id = "extension-modal";
+    modal.className = isPostingTab ? "posting-mode" : "sharing-mode";
     modal.innerHTML = `
             <h3>Auto-Posting ${
               isPostingTab
@@ -21,6 +36,7 @@ function initializeModal() {
                     : 'Click "Post on Page" buttons to share'
                 }
             </div>
+            <div class="connection-status">Connected</div>
         `;
     document.body.appendChild(modal);
   }
@@ -30,8 +46,11 @@ function initializeModal() {
 function updateModalStatus() {
   const modal = document.getElementById("extension-modal");
   if (modal) {
+    modal.className = isPostingTab ? "posting-mode" : "sharing-mode";
     const header = modal.querySelector("h3");
     const statusMessage = modal.querySelector(".status-message");
+    const connectionStatus = modal.querySelector(".connection-status");
+
     if (header) {
       header.textContent = `Auto-Posting ${
         isPostingTab ? "Active (Receiving Posts)" : "Active (Sharing Mode)"
@@ -42,23 +61,39 @@ function updateModalStatus() {
         ? "Waiting to receive posts..."
         : 'Click "Post on Page" buttons to share';
     }
+    if (connectionStatus) {
+      connectionStatus.textContent = isPostingTab
+        ? "Connected"
+        : "Sharing Mode Active";
+    }
   }
 }
 
 // Listen for messages from background script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "toggleStatus") {
-    isExtensionActive = request.isActive;
-    isPostingTab = request.isPostingTab;
-
-    if (isExtensionActive) {
-      initializeModal();
-    } else {
-      const modal = document.getElementById("extension-modal");
-      if (modal) modal.remove();
-    }
-    updateButtonStyles();
-    updateModalStatus();
+    if (request.action === "toggleStatus") {
+        isExtensionActive = request.isActive;
+        isPostingTab = request.isPostingTab;
+        
+        if (isExtensionActive) {
+            initializeModal();
+            // Start periodic state verification if this is the posting tab
+            if (isPostingTab) {
+                if (stateCheckInterval) {
+                    clearInterval(stateCheckInterval);
+                }
+                stateCheckInterval = setInterval(verifyPostingTabStatus, 5000);
+            }
+        } else {
+            const modal = document.getElementById('extension-modal');
+            if (modal) modal.remove();
+            if (stateCheckInterval) {
+                clearInterval(stateCheckInterval);
+            }
+        }
+        updateButtonStyles();
+        updateModalStatus();
+  
   } else if (request.action === "newPost" && isPostingTab) {
     const postsList = document.getElementById("posts-list");
     if (postsList) {
@@ -70,6 +105,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       postsList.appendChild(postElement);
     }
   }
+});
+
+// Add cleanup when the page is unloaded
+window.addEventListener('unload', function() {
+    if (stateCheckInterval) {
+        clearInterval(stateCheckInterval);
+    }
 });
 
 // Check initial status when content script loads

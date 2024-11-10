@@ -206,3 +206,27 @@
     background: #f5f5f5;
     border-radius: 3px;
 }
+
+.connection-status {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    background-color: #4CAF50;
+    color: white;
+}
+
+#extension-modal {
+    position: relative;
+    min-height: 100px;
+}
+
+.posting-mode .connection-status {
+    background-color: #4CAF50;
+}
+
+.sharing-mode .connection-status {
+    background-color: #2196F3;
+}
