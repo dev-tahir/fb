@@ -1,0 +1,154 @@
+# Deployment Guide
+
+This document explains how to deploy the **Next.js Chatbot with Gemini AI** to production.  
+While any platform capable of running a Node.js application can host the project, the recommended solution is **Vercel**, which offers first-class support for Next.js and a friction-less CI/CD experience.
+
+---
+
+## 1. Prerequisites
+
+Before initiating a production deployment, ensure that the following requirements are satisfied:
+
+| Requirement | Minimum Version | Notes |
+|-------------|-----------------|-------|
+| Node.js     | 18 .x           | Used by the build pipeline. The hosting platform must supply an equivalent or later runtime. |
+| npm / pnpm / yarn | Latest stable | The lock file (`package-lock.json`, `pnpm-lock.yaml`, or `yarn.lock`) should be committed to guarantee deterministic builds. |
+| Google Cloud project | — | Gemini API **enabled** and OAuth credentials created. |
+| Environment variables | — | See section 4. |
+
+---
+
+## 2. Deployment on Vercel (Recommended)
+
+Vercel provides zero-configuration support for Next.js, automatic preview environments, and seamless integration with GitHub, GitLab, or Bitbucket repositories.
+
+### 2.1. Step-by-Step
+
+1. **Push the code to a Git repository**  
+   ```bash
+   git remote add origin <your-repository-url>
+   git push -u origin main
+   ```
+
+2. **Create a new Vercel project**  
+   - Sign in to [Vercel](https://vercel.com/).  
+   - Select **New Project** → **Import** your repository.  
+
+3. **Configure environment variables**  
+   Inside the *Environment Variables* tab, add the following keys for the **Production**, **Preview**, and **Development** environments.
+
+   | Key | Example Value |
+   |-----|---------------|
+   | `GOOGLE_CLIENT_ID`     | `xxxxxxxxxx.apps.googleusercontent.com` |
+   | `GOOGLE_CLIENT_SECRET` | `yoursecret` |
+   | `NEXTAUTH_URL`         | `https://your-vercel-domain.vercel.app` |
+   | `NEXTAUTH_SECRET`      | `long-random-string` |
+   | `GEMINI_API_KEY`       | `gemini-api-key` |
+
+4. **Deploy**  
+   Click **Deploy**. Vercel will execute `npm run build` (or the equivalent pnpm/yarn command) and host the generated application.
+
+### 2.2. Post-Deployment Checklist
+
+- **Update Google OAuth authorised domains**  
+  In the Google Cloud Console, add your Vercel production and preview domains to  
+  `Authorised JavaScript origins` **and**  
+  `Authorised redirect URIs` (`https://<domain>/api/auth/callback/google`).
+
+- **Verify build output**  
+  Use Vercel’s preview URL to confirm that:
+  - Google sign-in works.
+  - A test conversation with the chatbot returns responses.
+  - Chat history persists after a page reload.
+
+---
+
+## 3. Deploying to Other Platforms
+
+Although Vercel is recommended, any Node-compatible hosting service (Netlify, Render, AWS Amplify, Fly.io, Heroku, etc.) can serve the application.
+
+| Task | Command / Setting |
+|------|-------------------|
+| **Install dependencies** | `npm install` (or `pnpm install`, `yarn install`) |
+| **Build**                | `npm run build` |
+| **Start** (Serverless target) | Many platforms detect the Next.js output automatically. For traditional Node hosting use `npm start` or `next start`. |
+| **Environment variables** | Same keys as listed in section 2.1. |
+
+> **Tip:** When using a custom server or Docker, ensure that port **3000** is exposed and that your health checks target `/`.
+
+---
+
+## 4. Environment Variables (Reference)
+
+| Variable | Description |
+|----------|-------------|
+| `GOOGLE_CLIENT_ID` | OAuth 2.0 client ID obtained from Google Cloud Console. |
+| `GOOGLE_CLIENT_SECRET` | OAuth 2.0 client secret corresponding to the client ID. |
+| `NEXTAUTH_URL` | Absolute URL of the deployed site (e.g., `https://chatbot.example.com`). |
+| `NEXTAUTH_SECRET` | A random string used by NextAuth.js to sign JWTs and cookies. |
+| `GEMINI_API_KEY` | API key that authorises requests to the Gemini language model. |
+
+Store these values securely; never commit them to the repository.
+
+---
+
+## 5. Continuous Integration / Continuous Deployment
+
+The repository includes no platform-specific CI configuration, allowing each hosting provider to apply its own defaults. If you prefer an explicit pipeline:
+
+```yaml
+# .github/workflows/deploy.yml (example)
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - name: Install
+        run: pnpm install
+      - name: Build
+        run: pnpm run build
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+```
+
+---
+
+## 6. Troubleshooting
+
+| Symptom | Possible Cause | Resolution |
+|---------|----------------|------------|
+| *“Invalid `NEXTAUTH_URL`”* | Environment variable missing or misspelled | Verify the variable in the hosting dashboard. |
+| *OAuth consent screen error* | Redirect URI not whitelisted | Add the exact URI to the Google Cloud Console. |
+| *Gemini API 4xx/5xx* | Invalid or expired `GEMINI_API_KEY` | Regenerate the key in Google Cloud and redeploy. |
+| *Blank page after deploy* | Build failed or static assets missing | Inspect build logs, ensure `next build` succeeds locally. |
+
+---
+
+## 7. Support
+
+For deployment-related questions:
+
+1. Review this documentation thoroughly.  
+2. Search existing issues in the GitHub repository.  
+3. If the problem persists, open a **new issue** providing:
+   - Hosting provider
+   - Build logs
+   - Browser console output
+   - Steps to reproduce
+
+---
+
+© MIT License – see `LICENSE` for full details.

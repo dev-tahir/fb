@@ -1,0 +1,188 @@
+# API Reference
+
+This document provides a comprehensive reference for all public-facing interfaces that form part of the **Next.js Chatbot with Gemini AI** stack.  
+Endpoints are organised by functional area; each entry lists its HTTP verb, expected request schema, successful response payload, and possible error conditions.
+
+---
+
+## Contents
+
+1. Authentication (`/api/auth/*`)
+2. Chat (`/api/chat`)
+3. Environment Variables
+4. Client-side Utility Functions (`lib/*`)
+5. Types
+
+---
+
+## 1. Authentication Endpoints (`/api/auth/*`)
+
+The application employs **NextAuth.js** with the Google OAuth provider. All authentication routes are created automatically by NextAuth and therefore follow the conventional path structure.
+
+| Path | Verb | Description |
+|------|------|-------------|
+| `/api/auth/signin`         | `GET`  | Presents the Google OAuth consent page.                                                                   |
+| `/api/auth/callback/google`| `GET`  | OAuth2.0 redirect URI—exchanges the authorisation code for tokens and issues a session cookie.            |
+| `/api/auth/session`        | `GET`  | Retrieves the current session object.                                                                     |
+| `/api/auth/signout`        | `POST` | Invalidates the current session.                                                                          |
+
+### Session Object
+
+```jsonc
+{
+  "user": {
+    "id":     "string",   // Google user id
+    "name":   "string",
+    "email":  "string",
+    "image":  "string"
+  },
+  "expires": "ISO-8601 timestamp"
+}
+```
+
+### Error Codes
+
+| Status | Meaning                      | Notes                               |
+|--------|-----------------------------|-------------------------------------|
+| `401`  | Unauthenticated              | Session cookie missing or invalid.  |
+| `500`  | Internal Server Error        | Upstream Google OAuth failure.      |
+
+---
+
+## 2. Chat Endpoint (`/api/chat`)
+
+Handles all interactions with **Google Gemini AI**. This route is manually implemented and therefore version-controlled inside `app/api/chat/route.ts`.
+
+### `POST /api/chat`
+
+| Attribute | Value                            |
+|-----------|----------------------------------|
+| Auth      | Required (active NextAuth session) |
+| MIME      | `application/json`               |
+
+#### Request Body
+
+```jsonc
+{
+  "messages": [
+    {
+      "role":    "user" | "assistant" | "system",
+      "content": "string"              // Plain-text message
+    }
+  ]
+}
+```
+
+*The `messages` array must include at least one user message and may include the full conversation history so that Gemini can provide contextually-aware responses.*
+
+#### Successful Response `200 OK`
+
+```jsonc
+{
+  "id":        "string",   // Server-generated uuid
+  "createdAt": 1710760200, // Unix epoch (seconds)
+  "choices": [
+    {
+      "index":   0,
+      "message": {
+        "role":    "assistant",
+        "content": "string"          // Gemini's reply
+      }
+    }
+  ]
+}
+```
+
+#### Error Responses
+
+| Status | Meaning                        | Typical Cause                                    |
+|--------|--------------------------------|--------------------------------------------------|
+| `400`  | Bad Request                    | Malformed JSON or missing `messages`.            |
+| `401`  | Unauthenticated                | Absent/expired NextAuth session.                 |
+| `429`  | Rate Limit Exceeded            | Gemini quota exhausted.                          |
+| `500`  | Internal Server Error          | Upstream Gemini failure or configuration issue.  |
+
+---
+
+## 3. Environment Variables
+
+All sensitive configuration values are managed through `.env.local` (development) or the hosting provider’s secret store (production).
+
+| Variable | Description                                      |
+|----------|--------------------------------------------------|
+| `GOOGLE_CLIENT_ID`      | Google OAuth client ID.                           |
+| `GOOGLE_CLIENT_SECRET`  | Google OAuth client secret.                       |
+| `NEXTAUTH_URL`          | Absolute URL of the site (e.g. `https://app.tld`).|
+| `NEXTAUTH_SECRET`       | Random string used to sign JWT/session cookies.   |
+| `GEMINI_API_KEY`        | Server key for Gemini API access.                 |
+
+> **Tip:** In **Vercel**, add these under *Project Settings → Environment Variables* and mark them as **Encrypted**.
+
+---
+
+## 4. Client-side & Server-side Utilities
+
+### `lib/auth.ts`
+
+Utility helpers that wrap `getServerSession` and type-safe session extraction.
+
+```ts
+export const requireSession = async () => {
+  const session = await getServerSession(authOptions);
+  if (!session) throw new Error("Unauthenticated");
+  return session;
+};
+```
+
+### `lib/gemini.ts`
+
+Thin wrapper around the official Gemini SDK.
+
+```ts
+export const askGemini = async (messages: GeminiMessage[]) => {
+  const client = new Gemini({
+    apiKey: process.env.GEMINI_API_KEY!
+  });
+  return client.chat({ messages });
+};
+```
+
+### `lib/utils.ts`
+
+Shared helper functions (e.g. UUID generation, date formatting, local-storage handlers). All functions are fully typed with **TypeScript** generics and JSDoc comments.
+
+---
+
+## 5. Types (`types/*`)
+
+A centralised location for domain-specific TypeScript interfaces.
+
+```ts
+export interface ChatMessage {
+  role:    "user" | "assistant" | "system";
+  content: string;
+}
+
+export interface ChatResponse {
+  id:        string;
+  createdAt: number;
+  choices:   { index: number; message: ChatMessage }[];
+}
+```
+
+---
+
+## Versioning
+
+This document tracks the `main` branch at commit `HEAD`. Breaking changes will trigger a semantic version bump in `package.json`.
+
+---
+
+## Feedback
+
+Encountered an inconsistency or missing field?  
+Please open an issue or submit a pull request referencing this page so that the documentation remains accurate and exhaustive.
+
+---
+
+© Next.js Chatbot with Gemini AI — Released under the **MIT License**.
