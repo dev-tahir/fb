@@ -14,8 +14,6 @@ function verifyPostingTabStatus() {
         }
     });
 }
-
-
 // Initialize modal function
 function initializeModal() {
   if (!document.getElementById("extension-modal")) {
