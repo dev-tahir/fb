@@ -251,8 +251,6 @@ const observer = new MutationObserver((mutations) => {
     }
   });
 });
-
-
 // Start observing the document with the configured parameters
 observer.observe(document.body, {
   childList: true,
