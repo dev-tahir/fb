@@ -1,0 +1,148 @@
+```mdx
+---
+title: API Reference
+description: Comprehensive documentation for the Magemaker command-line and Python API, including configuration flags and usage.
+---
+
+# API Reference
+
+Welcome to the **Magemaker API Reference**. This page details the command-line interface (CLI) options and Python API for Magemaker, your toolkit for creating, deploying, and managing machine learning models across major cloud providers.
+
+## Command-Line Interface (CLI)
+
+Magemaker's CLI offers flexible model deployment, training, and configuration management. Below are the available CLI options, including new features introduced in this release.
+
+### Usage
+
+```sh
+magemaker [OPTIONS]
+```
+
+### Global Options
+
+| Option                | Description                                                                              | Type      | Choices                | Default           |
+|-----------------------|------------------------------------------------------------------------------------------|-----------|------------------------|-------------------|
+| `--version`           | Show Magemaker version and exit.                                                         | flag      |                        |                   |
+| `--hf`                | Deploy a Hugging Face Model. Specify the model name or path.                             | string    |                        |                   |
+| `--instance`          | EC2 instance type to deploy to (used for AWS).                                           | string    |                        |                   |
+| `--deploy`            | Path to YAML deployment configuration file.                                              | string    |                        |                   |
+| `--train`             | Path to YAML training configuration file.                                                | string    |                        |                   |
+| `-v, --verbose`       | Increase output verbosity.                                                               | flag      |                        |                   |
+| `--cloud`             | Specify the cloud provider for configuration and deployment.                             | string    | `aws`, `gcp`, `azure`, `all` |             |
+
+#### Notable Changes
+- **`--cloud` now accepts `all` as a valid option**, in addition to `aws`, `gcp`, and `azure`.
+    - This enables users to perform deployment actions across all supported providers.
+- Improved error messaging when insufficient arguments are provided.
+- When using the `--cloud` flag, supplying both `--deploy` and `--cloud` together will produce an error; the destination cloud is instead determined from the YAML config.
+
+---
+
+### Example: Deploying a Hugging Face Model to AWS
+
+```sh
+magemaker --cloud aws --hf "bert-base-uncased" --instance ml.m5.xlarge
+```
+
+### Example: Specifying a Deployment Config
+
+```sh
+magemaker --deploy path/to/deployment.yaml
+```
+
+**Note:** When using `--deploy`, the destination cloud provider is extracted from your YAML file.
+
+---
+
+### Example: Training a Model
+
+```sh
+magemaker --train path/to/training.yaml
+```
+
+---
+
+## CLI Option Details
+
+### `--version`
+Displays the current version of Magemaker and exits.
+
+### `--hf <model_name>`
+Deploys a specified Hugging Face model. Works with the corresponding cloud provider instance type if `--instance` is provided.
+
+### `--instance <instance_type>`
+Specifies the type of compute instance (e.g., for AWS: `ml.m5.xlarge`) for deployment.
+
+### `--deploy <path>`
+Accepts a YAML file describing deployment configuration. The cloud destination is read from the file.
+
+### `--train <path>`
+Accepts a YAML file describing training configuration.
+
+### `--cloud [aws|gcp|azure|all]`
+Sets the cloud provider. If `all` is used, deployment actions will target all supported providers.
+
+#### Example Error Handling
+
+If Magemaker is run without required parameters, the CLI now explicitly points out the missing cloud provider and suggests fix options:
+
+```
+Error: You must specify a cloud provider.
+Possible solutions:
+- magemaker --cloud gcp
+- magemaker --cloud aws
+- magemaker --cloud azure
+- magemaker --cloud all
+```
+
+---
+
+## Python API
+
+While Magemaker is primarily a CLI tool, developers may also programmatically interact with its Python interface.
+
+### Entry Point: `runner()`
+
+Defined in `magemaker/runner.py`, the `runner()` function sets up and invokes the CLI logic programmatically. For advanced cases, you can import and call `runner()` in your own Python code:
+
+```python
+from magemaker.runner import runner
+
+runner()  # Parses sys.argv, initializes and performs requested operations.
+```
+
+---
+
+## Example Deployment Configuration (`deployment.yaml`)
+
+```yaml
+deployment:
+  destination: aws
+models:
+  - name: bert-base-uncased
+    source: huggingface
+```
+
+---
+
+## FAQ
+
+**Q:** What happens if I specify both `--deploy <file>` and `--cloud`?  
+**A:** This will trigger an error. The correct way is to specify only `--deploy`, and Magemaker will select the cloud provider from the YAML configuration.
+
+**Q:** What is the effect of `--cloud all`?  
+**A:** Magemaker will attempt deployment across all supported cloud platforms.
+
+---
+
+## Further Reading
+
+- [Quickstart](quickstart)
+- [Installation Guide](installation)
+- [Overview](introduction)
+
+---
+
+For advanced usage, configuration formats, or troubleshooting, refer to the related documentation pages or the Magemaker source code.
+
+```
