@@ -1,0 +1,57 @@
+```markdown
+# API Reference
+
+## magemaker.runner
+
+### `runner()`
+
+Runs the primary entry point for the magemaker command-line tool. Sets up argument parsing, cloud preflight checks, logging, and dispatches deployment/training actions as specified by command line arguments.
+
+#### Arguments
+
+None directly (parses from `sys.argv`).
+
+#### Behavior
+
+- Prints the magemaker version at start (unless `--version` specified).
+- Parses arguments:
+    - `--version`: show magemaker version and exit.
+    - `--hf <model>`: deploy a Hugging Face model.
+    - `--instance <type>`: EC2 instance type.
+    - `--deploy <file>`: path to YAML deployment configuration.
+    - `--train <file>`: path to YAML training configuration.
+    - `-v` / `--verbose`: increase output verbosity.
+    - `--cloud [aws|gcp|azure|all]`: specifies the cloud provider.
+- If no arguments are given:
+    - Prints an error and usage suggestions for the `--cloud` flag.
+- If `--cloud` is set (and `--deploy` is not), runs `scripts/preflight.sh` with the `--cloud` argument to perform prerelease checks for the cloud provider.
+- If `--deploy` is set:
+    - Loads the deployment and first listed model from the YAML file.
+    - Runs preflight script for the target destination cloud.
+    - Calls `deploy_model` with loaded configs.
+- If `--train` is set:
+    - Loads the training and model config from the YAML file.
+    - Initiates fine-tuning via `fine_tune_model`.
+- Always dispatches to `main(args, loglevel)` if nothing else exits first.
+- Handles exceptions with stack traces where config loading is involved.
+
+#### Example
+
+```python
+from magemaker.runner import runner
+
+if __name__ == '__main__':
+    runner()
+```
+
+#### Notes
+
+- Uses colored terminal output for errors, hints, and version text.
+- Will only run setup (`setup.sh`) at start if `~/.aws` or `.env` do not exist.
+
+---
+
+**See also:**
+- [Getting Started](./introduction)
+- [Quickstart](./quickstart)
+```
