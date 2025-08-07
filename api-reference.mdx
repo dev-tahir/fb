@@ -1,0 +1,207 @@
+```mdx
+---
+title: API Reference
+description: Comprehensive reference for the main API and CLI arguments of magemaker.
+---
+
+# API Reference
+
+Welcome to the **magemaker** API Reference. This section provides a detailed breakdown of the core CLI arguments and functionalities available in the magemaker tool, including updates from the latest version.
+
+This documentation is intended for developers and data scientists building, deploying, and managing models using magemaker across multiple cloud providers.
+
+---
+
+## CLI Interface
+
+magemaker provides a robust command-line interface for model management tasks such as deployment and training. The CLI supports various cloud providers and offers flexible argument options.
+
+### General Command Syntax
+
+```bash
+magemaker [OPTIONS]
+```
+
+#### Example
+
+```bash
+magemaker --cloud aws --deploy config/deploy.yaml --verbose
+```
+
+---
+
+## Global Arguments
+
+| Argument          | Type    | Choices                       | Description                                                    |
+|-------------------|---------|-------------------------------|----------------------------------------------------------------|
+| `--version`       | flag    | —                             | Show magemaker version and exit                                |
+| `--hf`            | string  | —                             | Deploy a Hugging Face model (provide model identifier)         |
+| `--instance`      | string  | —                             | EC2 instance type to deploy to                                 |
+| `--deploy`        | string  | —                             | Path to YAML deployment configuration file                     |
+| `--train`         | string  | —                             | Path to YAML training configuration file                       |
+| `--cloud`         | string  | `aws`, `gcp`, `azure`, `all`  | Specify the cloud provider for configuration and deployment    |
+| `-v`, `--verbose` | flag    | —                             | Increase output verbosity                                      |
+
+---
+
+## Argument Details
+
+### `--cloud`
+
+**Type**: string  
+**Choices**: `aws`, `gcp`, `azure`, `all`  
+**Description**: Select the cloud provider for your operation. When set to `all`, magemaker will target all supported providers.
+
+> **Note:**  
+> As of the latest update, the CLI now supports the value `all` for `--cloud`, in addition to `aws`, `gcp`, and `azure`.
+
+#### Usage Example
+
+```bash
+magemaker --cloud all --train train-config.yaml
+```
+
+---
+
+### `--deploy`
+
+**Type**: string  
+**Description**: Path to your deployment YAML configuration file.  
+When specified, magemaker extracts deployment settings from the YAML file.
+
+> **Note:**  
+> If you specify both `--deploy` and `--cloud`, magemaker will warn that the destination cloud should be picked from the YAML and not via CLI.
+
+#### Usage Example
+
+```bash
+magemaker --deploy config/deploy.yaml
+```
+
+---
+
+### `--train`
+
+**Type**: string  
+**Description**: Path to your training YAML configuration file.
+
+#### Usage Example
+
+```bash
+magemaker --train config/train.yaml
+```
+
+---
+
+### `--hf`
+
+**Type**: string  
+**Description**: Deploy a Hugging Face model by providing a model identifier.
+
+#### Usage Example
+
+```bash
+magemaker --cloud aws --hf bert-base-uncased --instance ml.m5.xlarge
+```
+
+---
+
+### `--instance`
+
+**Type**: string  
+**Description**: EC2 instance type for deployment when working with AWS.
+
+#### Usage Example
+
+```bash
+magemaker --hf bert-base-uncased --instance ml.g4dn.xlarge
+```
+
+---
+
+### `--verbose` or `-v`
+
+**Type**: flag  
+**Description**: Increase verbosity of output for debugging and tracing.
+
+#### Usage Example
+
+```bash
+magemaker --cloud aws --deploy config/deploy.yaml --verbose
+```
+
+---
+
+### `--version`
+
+**Type**: flag  
+**Description**: Print magemaker's current version and exit.
+
+#### Usage Example
+
+```bash
+magemaker --version
+```
+
+---
+
+## Behavior and Error Handling
+
+- **No Arguments**: If you run `magemaker` with no arguments, the CLI prompts an error and suggests specifying a cloud provider using `--cloud`.
+
+- **Conflict**: If both `--cloud` and `--deploy` are specified, magemaker warns you and chooses the destination from your deployment YAML.
+
+- **Preflight Scripts**: For some cloud operations, magemaker runs a preflight script (`scripts/preflight.sh`) with the chosen cloud as a parameter.
+
+---
+
+## Exit Codes
+
+- `0`: Success
+- `1`: Missing essential parameter (such as `--cloud`)
+- Other: Execution or runtime error (stack trace provided on standard error)
+
+---
+
+## Example Workflows
+
+### Deploy a Model to AWS
+
+```bash
+magemaker --cloud aws --deploy config/deploy.yaml
+```
+
+### Fine-Tune a Model with Training Config
+
+```bash
+magemaker --cloud gcp --train training.yaml
+```
+
+### Deploy a Hugging Face Model to Azure
+
+```bash
+magemaker --cloud azure --hf bert-base-uncased --instance Standard_DS3_v2
+```
+
+---
+
+## Additional Notes
+
+- The CLI also supports parameter files (using `@file.conf` notation) for easier management of long argument sets.
+- Logging levels are set based on the `--verbose` flag.
+- Make sure your AWS/GCP/Azure credentials and environment files are properly set up before using magemaker.
+
+---
+
+## Full Example
+
+```bash
+magemaker --cloud all --deploy config/deploy.yaml --verbose
+```
+
+---
+
+For further customization or to explore more advanced features, refer to other pages in this documentation.
+
+---
+```
