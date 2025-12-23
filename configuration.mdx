@@ -1,0 +1,164 @@
+# Configuration Guide
+
+This document explains **all mandatory configuration steps** required to run the **Next.js Chatbot with Gemini AI** in both local-development and production environments.  
+Follow the sections in the order presented to guarantee a smooth installation and deployment experience.
+
+---
+
+## 1. Prerequisites
+
+| Requirement | Minimum Version | Notes |
+|-------------|-----------------|-------|
+| Node.js     | 18 LTS          | The application is written in TypeScript and targets modern ECMAScript features available in Node 18+. |
+| Google Cloud Project | — | The project must have the **Gemini API** enabled and Google OAuth credentials created. |
+| Package Manager | npm, Yarn, or pnpm | Choose any; all lock-files are ignored in `.gitignore`. |
+
+> **Tip**  
+> Although the project works on any platform that supports Node.js, macOS 12+, Ubuntu 20.04 LTS, or Windows 11 WSL 2 are the combinations tested during development.
+
+---
+
+## 2. Repository Setup
+
+Clone the repository and install dependencies:
+
+```bash
+git clone https://github.com/<your-org>/nextjs-gemini-chatbot.git
+cd nextjs-gemini-chatbot
+
+# npm
+npm install
+
+# — or —
+
+# yarn
+yarn install
+
+# — or —
+
+# pnpm
+pnpm install
+```
+
+---
+
+## 3. Environment Variables (`.env.local`)
+
+All sensitive values are stored in a local file named **`.env.local`** at the project root.  
+Create the file (it is **git-ignored** by default) and insert the following keys:
+
+```bash
+# ──────────────── Google OAuth ────────────────
+GOOGLE_CLIENT_ID     = your_google_client_id
+GOOGLE_CLIENT_SECRET = your_google_client_secret
+
+# ──────────────── NextAuth ────────────────
+NEXTAUTH_URL    = http://localhost:3000
+NEXTAUTH_SECRET = a_long_random_string
+
+# ──────────────── Gemini API ────────────────
+GEMINI_API_KEY = your_gemini_api_key
+```
+
+### 3.1 Generating `NEXTAUTH_SECRET`
+
+Generate a cryptographically-secure random string:
+
+```bash
+openssl rand -base64 32
+```
+
+Paste the value in the `NEXTAUTH_SECRET` field.
+
+---
+
+## 4. Google Cloud Console Configuration
+
+1. Sign in to **https://console.cloud.google.com** and open (or create) a project.  
+2. Navigate to **APIs & Services → Library**, search for **Gemini API**, and click **Enable**.  
+3. Under **Credentials** create an **OAuth 2.0 Client ID** of type **Web Application** and fill in:
+
+   | Field | Value |
+   |-------|-------|
+   | **Authorized JavaScript origins** | `http://localhost:3000` |
+   | **Authorized redirect URIs**      | `http://localhost:3000/api/auth/callback/google` |
+
+4. Download the JSON or copy the `client_id` and `client_secret` and update `.env.local`.
+
+---
+
+## 5. Local Development
+
+Run the development server:
+
+```bash
+npm run dev
+# or: yarn dev
+# or: pnpm dev
+```
+
+Open **http://localhost:3000**.  
+On first load you will be prompted to sign in with Google. After successful authentication, start chatting with the Gemini-powered assistant. Chat history is persisted automatically in browser **Local Storage**.
+
+---
+
+## 6. Production Deployment
+
+Although any platform that supports Next.js 14+ works, **Vercel** is the recommended target.
+
+### 6.1 Deploying to Vercel
+
+1. Push your repository to GitHub, GitLab, or Bitbucket.  
+2. Sign in to **https://vercel.com** and import the project.  
+3. In the **Environment Variables** panel replicate the keys in the local `.env.local`.  
+4. Click **Deploy** – Vercel detects the framework, runs `pnpm build` (or the appropriate command), and serves the application globally.
+
+### 6.2 Alternative Platforms
+
+For platforms such as Netlify, Render, DigitalOcean, or a custom VPS:
+
+1. Set `NODE_ENV=production` and build the project: `npm run build`.  
+2. Expose the same environment variables shown in Section 3.  
+3. Serve the app with `npm start`, or with a process manager such as **PM2**.
+
+---
+
+## 7. Troubleshooting
+
+| Symptom | Possible Cause | Resolution |
+|---------|----------------|------------|
+| Google sign-in shows “Error 400: redirect_uri_mismatch” | Redirect URI not whitelisted | Add `http://<domain>/api/auth/callback/google` to Google OAuth redirect URIs. |
+| Gemini API returns **401 Unauthorized** | Incorrect or missing `GEMINI_API_KEY` | Verify the key in **https://console.cloud.google.com** and `.env.local`. |
+| Blank page after build | Missing `NEXTAUTH_URL` in production | Set `NEXTAUTH_URL` to your live domain (e.g., `https://chatbot.example.com`). |
+
+---
+
+## 8. Updating Configuration
+
+When changing any value in `.env.local`:
+
+1. Stop the development server (`CTRL + C`).  
+2. Update the variables.  
+3. Restart the server to apply the new configuration.
+
+For production, re-deploy the application after editing environment variables.
+
+---
+
+## 9. Further Reading
+
+- Next.js Environment Variables  
+  https://nextjs.org/docs/app/building-your-application/configuring/environment-variables
+
+- NextAuth.js Configuration  
+  https://next-auth.js.org/configuration/options
+
+- Google Cloud OAuth 2.0  
+  https://developers.google.com/identity/protocols/oauth2
+
+- Gemini API Documentation  
+  https://cloud.google.com/ai/gemini/docs
+
+---
+
+© MIT License — © 2024 The Next.js Gemini Chatbot Contributors
